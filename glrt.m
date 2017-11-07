@@ -1,10 +1,10 @@
-function [ret] = glrt(img, window_dim, threshold)
+function [ret, l] = glrt(img, window_dim, threshold)
     % Computes the GLRT (Generalized Likelihood Ratio Test) from paper
     % "Characterization of a Bayesian Ship Detection Method in Optical 
     % Satellite Images".
     
-    % Computes the logarithms of the likelihood of the image given by
-    % L(H1) - L(H0)*a*NI*m1^2 + N0*m0^2 - NAma^2    (Eq. 6 in the paper)
+    % Computes the logarithm likelihoods of the image given by
+    %      NI*m1^2 + N0*m0^2 - NAma^2    (Eq. 6 in the paper)
     % 
     % LA = window_dim * window_dim
     % LI = 5 (kept fixed in the paper)
@@ -32,36 +32,31 @@ function [ret] = glrt(img, window_dim, threshold)
     nPixels = dim * dim;
     ret = false;
     
+    l = 0;
+    
     for i = 0:nPixels-1
        % Add one as indexing starts at 1.
        x = floor(i / dim) + 1;
        y = mod(i, dim) + 1;
        
-       window = get_window(x, y, window_dim, dim);
-       [I, O, A] = get_regions(window);
-       l = loglr(I, O, A);
+       A = get_window(x, y, window_dim, dim);
+       [I, O] = get_regions(A);
+       % A equals whole image - O.
+       new_l = loglr(I, O, A);
       
-       % Right now if we have a positive from any of the pixels we return
-       % a dectection. Change this, we need some kind of postprocessing or
-       % weighting in order to make a decision.
-       if l > threshold
-           ret = true;
-       end   
+       % TODO. Right now we are taking the maximum of likelihood values, 
+       % is this the best approach?
+       l = max(l, new_l); 
     end
     
+    ret = l > threshold;
 end
 
 function [l] = loglr(I, O, A)
-    % L(H1) = L(I) + L(0)
-    L_h1 = lr(I) + lr(O);
-    % L(H0) = L(A)
-    L_h0 = lr(A);
-    
-    if ~isSquare(I) || ~isSquare(O) || ~isSquare(A)
+    if ~is_square(I) || ~is_square(O) || ~is_square(A)
         error('Imput matrices must be square.');
     end
     
-    tmp = size(I);
     % Compute number of pixels inside each region.
     NI = length(I(:));
     NO = length(O(:));
@@ -71,20 +66,5 @@ function [l] = loglr(I, O, A)
     mO = mean(O(:));
     mA = mean(A(:));
     
-    l = L_h1 - L_h0*NI*mI^2 + NO*mO^2 - NA*mA*2;
-end
-
-function [b] = isSquare(A)
-    % Accepts a two-dimensional matrix A and returns true if A is a square 
-    % matrix, otherwise return false.
-    dims = ndims(A);
-    
-    if dims ~= 2:
-        error('Expecting matrix with two dimensions, found %d', dims)
-    end
-    
-    sizes = size(A);  
-    
-    b = sizes(1) == sizes(2);
-  
+    l = NI*mI^2 + NO*mO^2 - NA*mA^2;
 end
