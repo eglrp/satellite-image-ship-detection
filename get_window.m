@@ -14,13 +14,13 @@ function [window] = get_window(pixel_row, pixel_col, window_side, img_side)
     %       width - width of the window
     %       height - height of the window
     
-    if (mod(window_side, 2) == 0)
-        error('Window must have odd-sized dimensions.');
-    end
+    %if (mod(window_side, 2) == 0)
+    %    error('Window must have odd-sized dimensions.');
+    %end
     
-    if (window_side > img_side)
-        error('Window size must be less than or equal to image size.')
-    end
+    %if (window_side > img_side)
+    %    error('Window size must be less than or equal to image size.')
+    %end
     
     offset = floor(window_side/2); 
     window = struct();

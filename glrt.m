@@ -30,19 +30,30 @@ function [ret, l] = glrt(img, window_dim, threshold)
     
     dim = imgDim(1);          
     nPixels = dim * dim;
-    ret = false;
     
     l = 0;
     
+    % Move sliding window throughout the image. At each step one of the
+    % pixels in the image will be center of the sliding window.
     for i = 0:nPixels-1
        % Add one as indexing starts at 1.
        x = floor(i / dim) + 1;
        y = mod(i, dim) + 1;
        
-       A = get_window(x, y, window_dim, dim);
-       [I, O] = get_regions(A);
-       % A equals whole image - O.
+       windowA = get_window(x, y, window_dim, dim);
+       A = extract_window(img, windowA);
+       % Keep target window size fixed.
+       dimI = 5;
+       windowI = get_window(x, y, dimI, dim);
+       I = extract_window(img, windowI);
+       O = extract_window(A, windowI, true);
+       
        new_l = loglr(I, O, A);
+       
+       % TODO. Remove this diagnostic plot.
+       if new_l > 3000
+           image(I);
+       end
       
        % TODO. Right now we are taking the maximum of likelihood values, 
        % is this the best approach?
@@ -53,9 +64,9 @@ function [ret, l] = glrt(img, window_dim, threshold)
 end
 
 function [l] = loglr(I, O, A)
-    if ~is_square(I) || ~is_square(O) || ~is_square(A)
-        error('Imput matrices must be square.');
-    end
+    % Compute log likelihood,
+    % H1 - H0 = L(O) + L(I) - L(A) = NI*mI^2 + NO*mO^2 - NA*mA^2
+    % Assuming equal variances.
     
     % Compute number of pixels inside each region.
     NI = length(I(:));
