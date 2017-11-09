@@ -6,32 +6,28 @@
 targets = ["data/ship1.png", "data/ship2.png", "data/ship3.png", ...
     "data/ship4.png", "data/ship5.png"];
 
-backgrounds = ["data/ocean1.png", "data/ocean2.png"];
+backgrounds = ["data/ocean1.png", "data/ocean2.png", "data/ocean3.png", ...
+    "data/ocean4.png", "data/ocean5.png"];
 
 window_size = 7;
 
-fprintf('Averaging GLRT for %d targets\n', length(targets));
-glrtSum = 0.0;
+% Assuming pictures are 512*512 pixels.
+targetResults = zeros(512);
+
 for imgFilename = targets
     fprintf("Processing file %s\n", imgFilename);
     [img, ~] = imread(char(imgFilename));
-    % Flatten color channels into grayscale image.
-    img = rgb2gray(img);
-    l = glrt(img, window_size);
-    glrtSum = glrtSum + l;
+    targetResults = cat(3, targetResults, glrt(img, window_size));
 end
-fprintf("Result: %f\n", glrtSum / length(targets));
+targetResults = targetResults(:,:,2:6);
 
-fprintf("Averaging GLRT for %d backgrounds\n", length(backgrounds));
-glrtSum = 0.0;
+% Assuming pictures are 512*512 pixels.
+backgroundResults = zeros(512);
+
 for imgFilename = backgrounds
     fprintf("Processing file %s\n", imgFilename);
     [img, ~] = imread(char(imgFilename));
-    % Flatten color channels into grayscale image.
-    img = rgb2gray(img);
-    l = glrt(img, window_size);
-    glrtSum = glrtSum + l;
+    backgroundResults = cat(3, backgroundResults, glrt(img, window_size));
 end
-fprintf("Result: %f\n", glrtSum / length(backgrounds));
-    
-%[M, count] = load_data(filename);
+backgroundResults = backgroundResults(:,:,2:6);
+
