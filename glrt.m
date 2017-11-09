@@ -1,4 +1,4 @@
-function [l] = glrt(img, window_dim)
+function [likelihoodMatrix] = glrt(img, window_dim)
     % Computes the GLRT (Generalized Likelihood Ratio Test) from paper
     % "Characterization of a Bayesian Ship Detection Method in Optical 
     % Satellite Images".
@@ -31,7 +31,7 @@ function [l] = glrt(img, window_dim)
     dim = imgDim(1);          
     nPixels = dim * dim;
     
-    l = 0;
+    likelihoodMatrix = zeros(dim);
     
     % Move sliding window throughout the image. At each step one of the
     % pixels in the image will be center of the sliding window.
@@ -48,19 +48,13 @@ function [l] = glrt(img, window_dim)
        I = extract_window(img, windowI);
        O = extract_window(A, windowI, true);
        
-       new_l = loglr(I, O, A);
+       likelihoodMatrix(x, y) = loglr(I, O, A);
        
        % TODO. Remove this diagnostic plot.
        %if new_l > 3000
        %    image(I);
-       %end
-      
-       % TODO. Right now we are taking the maximum of likelihood values, 
-       % is this the best approach?
-       l = max(l, new_l); 
+       %end       
     end
-    
-    %ret = l > threshold;
 end
 
 function [l] = loglr(I, O, A)
