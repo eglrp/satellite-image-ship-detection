@@ -8,9 +8,8 @@ function [R] = extract_window(matrix, window, invert_selection)
    
    if invert_selection
        tmpMatrix = matrix;
-       tmpMatrix(rows, cols) = nan;
-       isNan = isnan(tmpMatrix);
-       R = tmpMatrix(~isNan);
+       tmpMatrix(rows, cols) = 0;
+       R = tmpMatrix(tmpMatrix > 0);     
    else
        R = matrix(rows, cols);
    end
