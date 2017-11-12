@@ -1,13 +1,6 @@
 function [likelihoodMatrix] = glrt(img, window_dim)
-    % Computes the GLRT (Generalized Likelihood Ratio Test) from paper
-    % "Characterization of a Bayesian Ship Detection Method in Optical 
-    % Satellite Images".
-    
-    % Computes the logarithm likelihoods of the image given by
+    % Computes the Generalized Likelihood Ratio Test for image, given by
     %      NI*m1^2 + N0*m0^2 - NAma^2    (Eq. 6 in the paper)
-    % 
-    % LA = window_dim * window_dim
-    % LI = 5 (kept fixed in the paper)
     % 
     % Pseudo code:
     %   1) For each pixel of the input image:
@@ -18,6 +11,7 @@ function [likelihoodMatrix] = glrt(img, window_dim)
     %
     % Parameters:
     %   img - square matrix with image pixels
+    %   window_dim - length of the window
     imgDim = size(img);
     
     if ndims(img) ~= 2
@@ -48,12 +42,7 @@ function [likelihoodMatrix] = glrt(img, window_dim)
        I = extract_window(img, windowI);
        O = extract_window(A, windowI, true);
        
-       likelihoodMatrix(x, y) = loglr(I, O, A);
-       
-       % TODO. Remove this diagnostic plot.
-       %if new_l > 3000
-       %    image(I);
-       %end       
+       likelihoodMatrix(x, y) = loglr(I, O, A);     
     end
 end
 
